@@ -1,4 +1,4 @@
-ㅊ<!doctype html>
+<!doctype html>
 <html lang="ko">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="이선재 | 콘텐츠 마케터·기획자 포트폴리오"><title>이선재 | Content Marketer & Planner</title>
@@ -8,25 +8,57 @@
 .profile-photo{width:100%;max-width:290px;aspect-ratio:4/5;object-fit:cover;object-position:center 24%;display:block;margin:0 0 23px;border:1px solid var(--line);background:var(--soft)}.profile-note{align-self:start}.profile-note .eyebrow{margin-bottom:14px}@media(max-width:800px){.profile-photo{max-width:230px;aspect-ratio:4/5}}@media(max-width:540px){.profile-photo{max-width:180px}}
 .media-art{padding:0;background:#e9ede7}.media-art::before,.media-art::after{display:none}.media-art img{width:100%;height:100%;object-fit:cover;display:block}.detail-media{display:grid;gap:16px}.detail-media:empty{display:none}.detail-media img,.detail-media video{display:block;width:100%;height:auto;max-height:520px;object-fit:contain;background:#eee}.detail-media iframe{width:100%;aspect-ratio:16/9;border:0}
 
-  /* 모바일 전용 프로필 레이아웃 */
+/* 모바일 전용 프로필: 사진과 이름을 나란히 배치 */
 @media (max-width: 600px) {
-  .profile-photo {
-    display: block;
+  .hero-grid > .profile-note {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 132px;
+    column-gap: 18px;
+    align-items: start;
     width: 100%;
-    max-width: 220px;
+  }
+  .profile-note .profile-photo {
+    grid-column: 2;
+    grid-row: 1 / 4;
+    width: 132px;
+    max-width: 100%;
     height: auto;
     aspect-ratio: 4 / 5;
     object-fit: cover;
     object-position: center 24%;
-    margin: 0 auto 28px;
+    margin: 0;
   }
-
-  .profile-note {
-    width: 100%;
-    text-align: left;
+  .profile-note > .eyebrow {
+    grid-column: 1;
+    grid-row: 1;
+    margin: 0 0 6px;
+  }
+  .profile-note > strong:first-of-type {
+    grid-column: 1;
+    grid-row: 2;
+    font-size: 16px;
+    line-height: 1.45;
+  }
+  .profile-note > p:first-of-type {
+    grid-column: 1;
+    grid-row: 3;
+    margin: 8px 0 0;
+    font-size: 12px;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+  }
+  .profile-note > strong:nth-of-type(2) {
+    grid-column: 1 / -1;
+    margin-top: 22px;
+  }
+  .profile-note > p:nth-of-type(2),
+  .profile-note > .text-link {
+    grid-column: 1 / -1;
+  }
+  .profile-note > p:nth-of-type(2) {
+    margin: 7px 0 15px;
   }
 }
-
 </style>
 </head>
 <body>
