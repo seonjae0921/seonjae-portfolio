@@ -9,7 +9,7 @@
 ```
 index.html        사이트 페이지 (자동 생성)
 assets/style.css  스타일 (색상 · 글꼴은 맨 위 :root 토큰)
-assets/main.js    메뉴 위치 표시 · 등장 모션
+assets/main.js    메뉴 위치 표시 · 등장 모션 · 이메일 복사
 tools/content.js  ★ 모든 글 내용
 tools/build.js    content.js → index.html 생성
 profile.jpg       프로필 사진

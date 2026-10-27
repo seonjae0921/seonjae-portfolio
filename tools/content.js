@@ -95,6 +95,6 @@ module.exports = {
   contact: {
     lead: '채용 제안, 자료 요청, 커피챗 모두 환영합니다.',
     mailSubject: '[포트폴리오] 이선재님께 연락드립니다',
-    notionNote: '전체 경력과 근거 자료',
+    blog: { name: '혼자서 잘노는 역마살낀 파워I', url: 'https://blog.naver.com/yol_0921' },
   },
 };

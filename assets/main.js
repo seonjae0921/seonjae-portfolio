@@ -35,4 +35,28 @@
     pending.forEach(function (el) { rio.observe(el); });
     setTimeout(function () { pending.forEach(function (el) { el.classList.add('in'); }); }, 4000);
   }
+  /* 3) 이메일 주소 복사 */
+  var copyBtn = document.getElementById('copy-email');
+  var copyStatus = document.getElementById('copy-status');
+  if (copyBtn) {
+    var original = copyStatus ? copyStatus.textContent : '';
+    var done = function (ok) {
+      if (!copyStatus) return;
+      copyStatus.textContent = ok ? '복사했습니다 ✓' : '복사하지 못했어요. 주소를 직접 선택해 주세요.';
+      copyBtn.classList.toggle('copied', ok);
+      setTimeout(function () { copyStatus.textContent = original; copyBtn.classList.remove('copied'); }, 2500);
+    };
+    copyBtn.addEventListener('click', function () {
+      var addr = copyBtn.getAttribute('data-email');
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(addr).then(function () { done(true); }, function () { done(false); });
+      } else {
+        try {
+          var t = document.createElement('textarea'); t.value = addr; t.setAttribute('readonly', '');
+          t.style.position = 'absolute'; t.style.left = '-9999px'; document.body.appendChild(t); t.select();
+          var ok = document.execCommand('copy'); document.body.removeChild(t); done(ok);
+        } catch (e) { done(false); }
+      }
+    });
+  }
 })();

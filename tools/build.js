@@ -21,7 +21,8 @@ const highlights = C.highlights.map((h) => `<li class="hl-item" data-reveal>
 <strong>${esc(h.value)}</strong><span class="hl-label">${esc(h.label)}</span><span class="hl-detail">${esc(h.detail)}</span><em class="scope${h.scope === '기여' ? ' team' : ''}">${esc(h.scope)}</em>
 </li>`).join('\n');
 
-const works = C.works.map((w) => `<article class="work" data-reveal>
+const TONES = ['tone-1', 'tone-2', 'tone-3'];
+const works = C.works.map((w, i) => `<article class="work ${TONES[i % TONES.length]}" data-reveal>
 <div class="work-kpi"><strong>${esc(w.kpi)}</strong><span>${esc(w.kpiSub)}</span></div>
 <div class="work-body">
 <p class="meta"><span class="tag">${esc(w.tag)}</span>${esc(w.period)}</p>
@@ -39,7 +40,7 @@ const html = `<!doctype html>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(site.description)}">
-<meta name="theme-color" content="#0a0e16">
+<meta name="theme-color" content="#f5f1ea">
 <link rel="canonical" href="${esc(site.baseUrl)}">
 <meta property="og:type" content="website">
 <meta property="og:title" content="${esc(title)}">
@@ -64,7 +65,6 @@ const html = `<!doctype html>
 
 <main id="main">
 <section class="hero" id="home" aria-labelledby="hero-title">
-<div class="glow a" aria-hidden="true"></div><div class="glow b" aria-hidden="true"></div>
 <div class="wrap">
 <div class="who"><img src="${site.photo}" alt="${esc(site.name)} 프로필 사진" width="56" height="56"><p class="eyebrow">${esc(intro.eyebrow)}</p></div>
 <h1 id="hero-title">${h1}</h1>
@@ -101,12 +101,13 @@ ${works}
 <section class="section contact" id="contact" aria-labelledby="contact-title">
 <div class="wrap">
 <div class="sec-head"><p class="eyebrow">Contact</p><h2 id="contact-title">연락처</h2><p>${esc(contact.lead)}</p></div>
-<div class="contact-links">
-<a class="btn primary" href="${esc(mailto)}">이메일 보내기 · ${esc(site.email)}</a>
-<a class="btn" href="${site.resume}" download>이력서 · 자기소개서 PDF ↓</a>
-<a class="btn" href="${esc(site.notion)}" target="_blank" rel="noopener noreferrer">노션 커리어 허브 ↗<span class="sr"> (새 창)</span></a>
+<div class="contact-grid">
+<button class="c-card copy" type="button" id="copy-email" data-email="${esc(site.email)}"><span class="c-label">이메일 주소 복사</span><strong>${esc(site.email)}</strong><span class="c-sub" id="copy-status" aria-live="polite">누르면 클립보드에 복사됩니다</span></button>
+<a class="c-card" href="${esc(contact.blog.url)}" target="_blank" rel="noopener noreferrer"><span class="c-label">네이버 블로그</span><strong>${esc(contact.blog.name)}</strong><span class="c-sub">blog.naver.com/yol_0921 ↗<span class="sr"> (새 창)</span></span></a>
+<a class="c-card" href="${esc(site.notion)}" target="_blank" rel="noopener noreferrer"><span class="c-label">노션 커리어 허브</span><strong>전체 경력 · 근거 자료</strong><span class="c-sub">notion ↗<span class="sr"> (새 창)</span></span></a>
+<a class="c-card" href="${site.resume}" download><span class="c-label">이력서 · 자기소개서</span><strong>PDF 내려받기</strong><span class="c-sub">resume.pdf ↓</span></a>
 </div>
-<p class="note">${esc(contact.notionNote)}는 노션 커리어 허브에 정리해 두었습니다.</p>
+<p class="note">메일 앱으로 바로 쓰시려면 <a href="${esc(mailto)}">여기를 누르세요</a>.</p>
 </div>
 </section>
 </main>
