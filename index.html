@@ -229,7 +229,7 @@ render();
   const POOL=[];
   BEADS.forEach(b=>b.colors.forEach(col=>{for(let i=0;i<b.weight;i++)POOL.push({b,img:sprite(b.type,col)});}));
 
-  const parts=[];const MAX=140;
+  const parts=[];const MAX=112;
   let W=0,H=0,running=false,last=0,px=null,py=null,carry=0,lastMove=0;
   const STOP_MS=120, FADE_MS=380; // 멈춘 뒤 120ms가 지나면 0.38초 동안 부드럽게 사라짐
 
@@ -270,7 +270,7 @@ render();
     const x=e.clientX,y=e.clientY;lastMove=performance.now();
     if(px===null){px=x;py=y;return;}
     const dx=x-px,dy=y-py,dist=Math.hypot(dx,dy);
-    carry+=dist/11; // 11px 움직일 때마다 비즈 1개
+    carry+=dist/13.75; // 13.75px 움직일 때마다 비즈 1개 (이전 11px 대비 20% 감소)
     let n=Math.min(4,Math.floor(carry));carry-=n;
     for(let i=0;i<n;i++){const f=(i+1)/(n+1);spawn(px+dx*f,py+dy*f,dx,dy);}
     px=x;py=y;if(n)kick();
