@@ -123,9 +123,13 @@
 .project .steps{margin-top:14px}
 .strength h3{font-size:30px;margin:0 0 14px}
 .strengths{counter-reset:st}.strength{position:relative;overflow:hidden;counter-increment:st}.strength>*{position:relative;z-index:1}.strength:after{content:"0" counter(st);position:absolute;right:0;top:0;font-size:115px;font-weight:800;line-height:.74;letter-spacing:-5px;color:var(--accent);opacity:.072;pointer-events:none}
+
+/* ===== 1. 마우스 파티클 트레일 (비즈) ===== */
+#beadTrail{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:25}
 </style>
 </head>
 <body>
+<canvas id="beadTrail" aria-hidden="true"></canvas>
 <header class="header"><div class="wrap header-inner"><a href="#home" class="logo">SEONJAE<span>.</span></a><button class="menu-btn" id="menuBtn" aria-label="메뉴 열기" aria-expanded="false">☰</button><nav id="nav" aria-label="주 메뉴"><a href="#projects">PROJECTS</a><a href="#experience">EXPERIENCE</a><a href="#about">ABOUT</a><a href="#contact">CONTACT</a><a class="nav-resume" href="resume.pdf" download id="resumeLink">RESUME ↗</a></nav></div></header>
 <main><section id="home" class="hero wrap"><div class="hero-grid"><div><div class="eyebrow">Content Marketer · Content Planner</div><h1>방문자 60명을 <em>2,000명</em>으로,<br>제안서를 <em>계약</em>으로</h1><p class="lead">검색으로 유입을 키우고, 제안으로 판로를 여는 <strong>마케터 이선재</strong>입니다.</p><div class="hero-actions"><a class="btn primary" href="#projects">프로젝트 살펴보기 <span>↗</span></a><a class="btn" href="#experience">경력 확인하기 <span>↘</span></a></div></div></div><div class="metrics"><div class="metric"><strong>5.7배</strong><span>홈페이지 월 방문자 4,000명</span><em class="badge">담당 채널</em></div><div class="metric"><strong>33배</strong><span>블로그 월 방문자 60 → 2,000명</span><em class="badge">담당 채널</em></div><div class="metric"><strong>1억 원</strong><span>B2G 구매상담회 · 납품 계약 4건</span></div><div class="metric"><strong>3배</strong><span>재구매 규모 증가 · 재구매 고객 10건+</span></div></div></section>
 <section class="section" id="strengths"><div class="wrap"><div class="section-head"><div><div class="eyebrow">What I do</div><h2>Core Strengths.</h2></div><p class="section-intro">설계하고, 제안하고, 전달합니다.</p></div><div class="strengths"><article class="strength"><h3>설계</h3><p>고객이 어떤 검색어로 들어오는지 분석해, 검색광고(연 264만 원)와 정보형 블로그가 서로 이어지는 유입 구조를 설계합니다.</p></article><article class="strength"><h3>제안</h3><p>구매 담당자가 무엇을 보고 고르는지 먼저 분석하고, 그 기준에 맞춰 제안서·제품 소개서·발표자료를 기획합니다.</p></article><article class="strength"><h3>전달</h3><p>복잡한 정보를 읽히는 글로 바꿔 전달합니다. 기자로 1면 톱기사·사설을 쓰고 월간 16면을 편집하며 메시지를 구조화하는 법을 익혔습니다.</p></article></div></div></section>
@@ -164,5 +168,130 @@ document.querySelectorAll('.filter').forEach(btn=>btn.addEventListener('click',(
 const menuBtn=document.getElementById('menuBtn'),nav=document.getElementById('nav');menuBtn.addEventListener('click',()=>{const open=nav.classList.toggle('open');menuBtn.setAttribute('aria-expanded',String(open));menuBtn.textContent=open?'×':'☰'});nav.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{nav.classList.remove('open');menuBtn.setAttribute('aria-expanded','false');menuBtn.textContent='☰'}));
 
 render();
+</script>
+<script>
+/* ===== 1. 마우스 파티클 트레일 — 비즈 공예 =====
+   진주 · 캣츠아이 · 론델 · 붉은 아크릴 하트 · 시드비즈가 마우스를 따라 흩뿌려진 뒤
+   천천히 작아지며 사라집니다. 클릭은 그대로 아래 콘텐츠에 전달됩니다(pointer-events:none).
+   ★ 비즈 종류 · 색 · 비율은 BEADS 배열에서 편집하세요. */
+(function(){
+  const canvas=document.getElementById('beadTrail');
+  if(!canvas||!canvas.getContext)return;
+  const reduce=window.matchMedia('(prefers-reduced-motion: reduce)');
+  const fine=window.matchMedia('(hover: hover) and (pointer: fine)');
+  const ctx=canvas.getContext('2d');
+  const DPR=Math.min(window.devicePixelRatio||1,2);
+  const S=64; // 스프라이트 원본 크기(px)
+
+  // [종류, 색 목록, 등장 비율, 기본 크기(px)]
+  const BEADS=[
+    {type:'pearl',     colors:['#fbf7ef','#f6ecdf','#f3e3ea'],            weight:5, size:[8,13]},
+    {type:'cateye',    colors:['#6fb7c9','#c98bb9','#8fa7e6','#e6b36f'],   weight:3, size:[8,12]},
+    {type:'rondelle',  colors:['#e9d7b8','#bcd9e6','#d9c2e8','#c9c2b8'],   weight:3, size:[9,14]},
+    {type:'heart',     colors:['#d7263d','#e8414f'],                       weight:2, size:[10,15]},
+    {type:'seed',      colors:['#f2c14e','#7fb8a4','#e58f9e','#9aa8d8'],   weight:3, size:[4,6]}
+  ];
+
+  /* --- 비즈 모양을 미리 그려 둔 스프라이트 (매 프레임 그라데이션 계산을 피함) --- */
+  function shade(hex,amt){const n=parseInt(hex.slice(1),16);let r=n>>16,g=n>>8&255,b=n&255;
+    const f=v=>Math.max(0,Math.min(255,Math.round(amt<0?v*(1+amt):v+(255-v)*amt)));
+    return `rgb(${f(r)},${f(g)},${f(b)})`;}
+  function sprite(type,color){
+    const c=document.createElement('canvas');c.width=c.height=S;const g=c.getContext('2d');const m=S/2;
+    g.translate(m,m);
+    if(type==='pearl'){
+      const gr=g.createRadialGradient(-7,-9,2,0,0,26);
+      gr.addColorStop(0,'#ffffff');gr.addColorStop(.45,color);gr.addColorStop(1,shade(color,-.22));
+      g.fillStyle=gr;g.beginPath();g.arc(0,0,26,0,Math.PI*2);g.fill();
+      g.fillStyle='rgba(255,255,255,.85)';g.beginPath();g.ellipse(-9,-10,7,4,-.6,0,Math.PI*2);g.fill();
+      g.strokeStyle='rgba(120,100,80,.18)';g.lineWidth=1.5;g.beginPath();g.arc(0,0,25.5,0,Math.PI*2);g.stroke();
+    }else if(type==='cateye'){
+      const gr=g.createRadialGradient(-6,-6,3,0,0,26);
+      gr.addColorStop(0,shade(color,.45));gr.addColorStop(.7,color);gr.addColorStop(1,shade(color,-.35));
+      g.fillStyle=gr;g.beginPath();g.arc(0,0,26,0,Math.PI*2);g.fill();
+      // 캣츠아이 특유의 빛 띠
+      const band=g.createLinearGradient(-26,0,26,0);
+      band.addColorStop(0,'rgba(255,255,255,0)');band.addColorStop(.5,'rgba(255,255,255,.75)');band.addColorStop(1,'rgba(255,255,255,0)');
+      g.save();g.rotate(-.5);g.fillStyle=band;g.beginPath();g.ellipse(0,0,24,4.5,0,0,Math.PI*2);g.fill();g.restore();
+    }else if(type==='rondelle'){
+      // 납작한 원반 + 커팅면
+      const gr=g.createLinearGradient(0,-16,0,16);
+      gr.addColorStop(0,shade(color,.55));gr.addColorStop(.5,color);gr.addColorStop(1,shade(color,-.3));
+      g.fillStyle=gr;g.beginPath();g.ellipse(0,0,27,16,0,0,Math.PI*2);g.fill();
+      g.strokeStyle='rgba(255,255,255,.55)';g.lineWidth=1.4;
+      for(let i=-3;i<=3;i++){g.beginPath();g.moveTo(i*7,-15);g.lineTo(i*7+(i<0?-3:3),15);g.stroke();}
+      g.fillStyle='rgba(255,255,255,.7)';g.beginPath();g.ellipse(-8,-8,8,2.5,-.2,0,Math.PI*2);g.fill();
+      g.fillStyle='rgba(60,50,40,.35)';g.beginPath();g.ellipse(0,0,4,2.4,0,0,Math.PI*2);g.fill(); // 구멍
+    }else if(type==='heart'){
+      const gr=g.createRadialGradient(-8,-10,2,0,0,30);
+      gr.addColorStop(0,shade(color,.4));gr.addColorStop(.6,color);gr.addColorStop(1,shade(color,-.3));
+      g.fillStyle=gr;g.beginPath();
+      g.moveTo(0,22);g.bezierCurveTo(-30,2,-22,-24,0,-10);g.bezierCurveTo(22,-24,30,2,0,22);g.closePath();g.fill();
+      g.fillStyle='rgba(255,255,255,.6)';g.beginPath();g.ellipse(-10,-9,6,3,-.7,0,Math.PI*2);g.fill();
+    }else{ // seed
+      const gr=g.createRadialGradient(-6,-6,2,0,0,24);
+      gr.addColorStop(0,shade(color,.5));gr.addColorStop(1,shade(color,-.2));
+      g.fillStyle=gr;g.beginPath();g.arc(0,0,24,0,Math.PI*2);g.fill();
+      g.fillStyle='rgba(255,255,255,.35)';g.beginPath();g.arc(0,0,8,0,Math.PI*2);g.fill();
+    }
+    return c;
+  }
+  const POOL=[];
+  BEADS.forEach(b=>b.colors.forEach(col=>{for(let i=0;i<b.weight;i++)POOL.push({b,img:sprite(b.type,col)});}));
+
+  const parts=[];const MAX=140;
+  let W=0,H=0,running=false,last=0,px=null,py=null,carry=0;
+
+  function resize(){W=innerWidth;H=innerHeight;canvas.width=W*DPR;canvas.height=H*DPR;canvas.style.width=W+'px';canvas.style.height=H+'px';ctx.setTransform(DPR,0,0,DPR,0,0);}
+  const rand=(a,b)=>a+Math.random()*(b-a);
+  function spawn(x,y,dx,dy){
+    const pick=POOL[Math.floor(Math.random()*POOL.length)];
+    const sp=Math.hypot(dx,dy)||1;
+    parts.push({x:x+rand(-4,4),y:y+rand(-4,4),
+      vx:-dx/sp*rand(.1,.6)+rand(-.9,.9), vy:-dy/sp*rand(.1,.6)+rand(-.9,.4),
+      size:rand(pick.b.size[0],pick.b.size[1]), rot:rand(0,Math.PI*2), vr:rand(-.04,.04),
+      alpha:rand(.78,.96), life:0, ttl:rand(1500,2300), img:pick.img});
+    if(parts.length>MAX)parts.shift();
+  }
+  // 다정하고 느린 감속: easeOutCubic 로 크기가 줄어듭니다
+  const easeOut=t=>1-Math.pow(1-t,3);
+  function frame(t){
+    const dt=Math.min(40,t-(last||t));last=t;
+    ctx.clearRect(0,0,W,H);
+    for(let i=parts.length-1;i>=0;i--){
+      const p=parts[i];p.life+=dt;const k=p.life/p.ttl;
+      if(k>=1){parts.splice(i,1);continue;}
+      p.vx*=.985;p.vy=p.vy*.985+.012; // 아주 약한 중력 — 실에서 흘러내리는 느낌
+      p.x+=p.vx*dt/16;p.y+=p.vy*dt/16;p.rot+=p.vr*dt/16;
+      const s=p.size*(1-Math.pow(k,1.6)*.9); // 처음엔 거의 그대로, 끝으로 갈수록 천천히 작아짐
+      ctx.globalAlpha=p.alpha*(1-easeOut(Math.max(0,(k-.35)/.65)));
+      ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.drawImage(p.img,-s,-s,s*2,s*2);ctx.restore();
+    }
+    ctx.globalAlpha=1;
+    if(parts.length){requestAnimationFrame(frame);}else{running=false;last=0;}
+  }
+  function kick(){if(!running){running=true;requestAnimationFrame(frame);}}
+  function onMove(e){
+    if(e.pointerType&&e.pointerType!=='mouse'&&e.pointerType!=='pen')return;
+    const x=e.clientX,y=e.clientY;
+    if(px===null){px=x;py=y;return;}
+    const dx=x-px,dy=y-py,dist=Math.hypot(dx,dy);
+    carry+=dist/11; // 11px 움직일 때마다 비즈 1개
+    let n=Math.min(4,Math.floor(carry));carry-=n;
+    for(let i=0;i<n;i++){const f=(i+1)/(n+1);spawn(px+dx*f,py+dy*f,dx,dy);}
+    px=x;py=y;if(n)kick();
+  }
+  let on=false;
+  function enable(){
+    const ok=!reduce.matches&&fine.matches;
+    if(ok&&!on){on=true;resize();addEventListener('resize',resize);addEventListener('pointermove',onMove,{passive:true});}
+    else if(!ok&&on){on=false;removeEventListener('pointermove',onMove);parts.length=0;ctx.clearRect(0,0,W,H);}
+    canvas.hidden=!ok;
+  }
+  document.addEventListener('mouseleave',()=>{px=null;});
+  enable();
+  (reduce.addEventListener?reduce.addEventListener('change',enable):reduce.addListener(enable));
+  document.addEventListener('visibilitychange',()=>{if(document.hidden){parts.length=0;px=null;}});
+})();
 </script>
 </body></html>
