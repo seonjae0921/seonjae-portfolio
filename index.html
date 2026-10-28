@@ -134,6 +134,28 @@
 .tw-caret.done{animation:twBlink 1s steps(1) 2,twOut .6s ease 2s forwards}
 @keyframes twBlink{50%{opacity:0}}
 @keyframes twOut{to{opacity:0;width:0;margin:0}}
+
+/* ===== 3. Core Strengths — 스티키 스택 · 호버 파동 ===== */
+.strengths{display:flex;flex-direction:column;gap:14vh;padding-bottom:6vh}
+.strength{--i:0;position:sticky;top:calc(106px + var(--i) * 22px);min-height:300px;padding:48px 52px;display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:40px;align-items:end;border:1px solid #dbe3ee;box-shadow:0 -14px 40px -26px rgba(15,23,42,.35);transform-origin:center top;transition:background-color .7s cubic-bezier(.22,1,.36,1),border-color .7s cubic-bezier(.22,1,.36,1)}
+.strength:nth-child(1){background:#eef2f7}
+.strength:nth-child(2){--i:1;background:#e8eef7}
+.strength:nth-child(3){--i:2;background:#e2e9f4}
+.strength h3{font-size:clamp(36px,4.4vw,56px);margin:0;letter-spacing:-1.5px}
+.strength p{font-size:16px;line-height:1.75;color:#4b5563;max-width:540px;transition:color .7s cubic-bezier(.22,1,.36,1)}
+.strength:hover,.strength:focus-within{background:#d5deec;border-color:#c3cfe2}
+.strength:hover p{color:#334155}
+.strength>.wave{position:absolute;inset:0;width:100%;height:100%;z-index:0;opacity:0;transition:opacity 1s cubic-bezier(.22,1,.36,1);pointer-events:none}
+.strength:hover>.wave,.strength:focus-within>.wave{opacity:1}
+.wave .wv-grid{stroke:rgba(42,91,215,.12);stroke-width:1;stroke-dasharray:3 6;vector-effect:non-scaling-stroke}
+.wave .wv{fill:none;stroke:var(--accent);vector-effect:non-scaling-stroke;stroke-linecap:round;animation:wvFlow 18s linear infinite;animation-play-state:paused}
+.wave .wv1{stroke-width:2;opacity:.42;animation-duration:16s}
+.wave .wv2{stroke-width:1.5;opacity:.26;animation-duration:23s}
+.wave .wv3{stroke-width:1.2;opacity:.18;animation-duration:31s}
+.strength:hover .wv,.strength:focus-within .wv{animation-play-state:running}
+@keyframes wvFlow{to{transform:translateX(-600px)}}
+@media(max-width:800px){.strengths{gap:10vh}.strength{top:calc(86px + var(--i) * 16px);grid-template-columns:1fr;gap:16px;min-height:250px;padding:32px 26px}.strength h3{font-size:36px}.strength p{font-size:15px}}
+@media (prefers-reduced-motion:reduce){.wave .wv{animation:none}.strength,.strength>.wave{transition:none}}
 </style>
 </head>
 <body>
@@ -358,6 +380,53 @@ render();
       t+= c===','?0.32 : c===' '?0.09 : 0.045+Math.random()*0.03;
     });
     tl.call(()=>{caret.classList.add('done');},null,t+0.2);
+  }
+})();
+</script>
+<script>
+/* ===== 3. Core Strengths — 스티키 스택 · 호버 파동 =====
+   카드는 CSS position:sticky 로 겹겹이 쌓이고, GSAP ScrollTrigger 로 뒤로 밀리는 카드가 살짝 작아집니다.
+   마우스를 올리면 데이터 그래프 같은 파동이 은은하게 흐릅니다. */
+(function(){
+  const cards=[...document.querySelectorAll('#strengths .strength')];
+  if(!cards.length)return;
+  const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const NS='http://www.w3.org/2000/svg';
+  const P=600; // 파동 한 주기(px) — 두 주기를 그려 끊김 없이 흐르게 함
+
+  // 주기가 P인 사인 조합으로 '데이터 그래프' 같은 선을 만듭니다
+  function wavePath(seed,amp,base){
+    const pts=[];
+    for(let x=0;x<=P*2;x+=12){
+      const t=x/P*Math.PI*2;
+      const y=base+amp*(Math.sin(t+seed)*.6+Math.sin(2*t+seed*1.7)*.28+Math.sin(3*t+seed*.6)*.12);
+      pts.push([x,y]);
+    }
+    return 'M'+pts.map(p=>p[0]+' '+p[1].toFixed(1)).join(' L');
+  }
+  cards.forEach((card,i)=>{
+    const svg=document.createElementNS(NS,'svg');
+    svg.setAttribute('class','wave');svg.setAttribute('viewBox',`0 0 ${P} 200`);
+    svg.setAttribute('preserveAspectRatio','none');svg.setAttribute('aria-hidden','true');
+    let html='';
+    [50,100,150].forEach(y=>{html+=`<line class="wv-grid" x1="0" y1="${y}" x2="${P}" y2="${y}"/>`;});
+    [[i*.9+.3,38,110,'wv1'],[i*1.3+2.1,26,128,'wv2'],[i*.7+4.2,18,148,'wv3']].forEach(([seed,amp,base,c])=>{
+      html+=`<path class="wv ${c}" d="${wavePath(seed,amp,base)}"/>`;
+    });
+    svg.innerHTML=html;
+    card.prepend(svg);
+  });
+
+  // 뒤로 밀리는 카드가 살짝 작아지며 '쌓이는' 깊이감
+  if(window.gsap&&window.ScrollTrigger&&!reduce){
+    gsap.registerPlugin(ScrollTrigger);
+    cards.forEach((card,i)=>{
+      const next=cards[i+1];if(!next)return;
+      gsap.to(card,{
+        scale:1-(cards.length-1-i)*0.035, ease:'none',
+        scrollTrigger:{trigger:next,start:'top bottom',end:()=>'top '+(parseFloat(getComputedStyle(next).top)||120)+'px',scrub:.8,invalidateOnRefresh:true}
+      });
+    });
   }
 })();
 </script>
