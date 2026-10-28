@@ -171,7 +171,7 @@ render();
 </script>
 <script>
 /* ===== 1. 마우스 파티클 트레일 — 비즈 공예 =====
-   진주 · 캣츠아이 · 론델 · 붉은 아크릴 하트 · 시드비즈가 마우스를 따라 흩뿌려진 뒤
+   진주 · 캣츠아이 · 붉은 아크릴 하트 · 시드비즈가 마우스를 따라 흩뿌려진 뒤
    천천히 작아지며 사라집니다. 클릭은 그대로 아래 콘텐츠에 전달됩니다(pointer-events:none).
    ★ 비즈 종류 · 색 · 비율은 BEADS 배열에서 편집하세요. */
 (function(){
@@ -187,7 +187,6 @@ render();
   const BEADS=[
     {type:'pearl',     colors:['#fbf7ef','#f6ecdf','#f3e3ea'],            weight:5, size:[8,13]},
     {type:'cateye',    colors:['#6fb7c9','#c98bb9','#8fa7e6','#e6b36f'],   weight:3, size:[8,12]},
-    {type:'rondelle',  colors:['#e9d7b8','#bcd9e6','#d9c2e8','#c9c2b8'],   weight:3, size:[9,14]},
     {type:'heart',     colors:['#d7263d','#e8414f'],                       weight:2, size:[10,15]},
     {type:'seed',      colors:['#f2c14e','#7fb8a4','#e58f9e','#9aa8d8'],   weight:3, size:[4,6]}
   ];
@@ -213,15 +212,6 @@ render();
       const band=g.createLinearGradient(-26,0,26,0);
       band.addColorStop(0,'rgba(255,255,255,0)');band.addColorStop(.5,'rgba(255,255,255,.75)');band.addColorStop(1,'rgba(255,255,255,0)');
       g.save();g.rotate(-.5);g.fillStyle=band;g.beginPath();g.ellipse(0,0,24,4.5,0,0,Math.PI*2);g.fill();g.restore();
-    }else if(type==='rondelle'){
-      // 납작한 원반 + 커팅면
-      const gr=g.createLinearGradient(0,-16,0,16);
-      gr.addColorStop(0,shade(color,.55));gr.addColorStop(.5,color);gr.addColorStop(1,shade(color,-.3));
-      g.fillStyle=gr;g.beginPath();g.ellipse(0,0,27,16,0,0,Math.PI*2);g.fill();
-      g.strokeStyle='rgba(255,255,255,.55)';g.lineWidth=1.4;
-      for(let i=-3;i<=3;i++){g.beginPath();g.moveTo(i*7,-15);g.lineTo(i*7+(i<0?-3:3),15);g.stroke();}
-      g.fillStyle='rgba(255,255,255,.7)';g.beginPath();g.ellipse(-8,-8,8,2.5,-.2,0,Math.PI*2);g.fill();
-      g.fillStyle='rgba(60,50,40,.35)';g.beginPath();g.ellipse(0,0,4,2.4,0,0,Math.PI*2);g.fill(); // 구멍
     }else if(type==='heart'){
       const gr=g.createRadialGradient(-8,-10,2,0,0,30);
       gr.addColorStop(0,shade(color,.4));gr.addColorStop(.6,color);gr.addColorStop(1,shade(color,-.3));
@@ -240,7 +230,8 @@ render();
   BEADS.forEach(b=>b.colors.forEach(col=>{for(let i=0;i<b.weight;i++)POOL.push({b,img:sprite(b.type,col)});}));
 
   const parts=[];const MAX=140;
-  let W=0,H=0,running=false,last=0,px=null,py=null,carry=0;
+  let W=0,H=0,running=false,last=0,px=null,py=null,carry=0,lastMove=0;
+  const STOP_MS=120, FADE_MS=380; // 멈춘 뒤 120ms가 지나면 0.38초 동안 부드럽게 사라짐
 
   function resize(){W=innerWidth;H=innerHeight;canvas.width=W*DPR;canvas.height=H*DPR;canvas.style.width=W+'px';canvas.style.height=H+'px';ctx.setTransform(DPR,0,0,DPR,0,0);}
   const rand=(a,b)=>a+Math.random()*(b-a);
@@ -250,7 +241,8 @@ render();
     parts.push({x:x+rand(-4,4),y:y+rand(-4,4),
       vx:-dx/sp*rand(.1,.6)+rand(-.9,.9), vy:-dy/sp*rand(.1,.6)+rand(-.9,.4),
       size:rand(pick.b.size[0],pick.b.size[1]), rot:rand(0,Math.PI*2), vr:rand(-.04,.04),
-      alpha:rand(.78,.96), life:0, ttl:rand(1500,2300), img:pick.img});
+      alpha:rand(.78,.96), life:0, ttl:0, img:pick.img});
+    const q=parts[parts.length-1];q.ttl=q.ttl0=rand(1500,2300);
     if(parts.length>MAX)parts.shift();
   }
   // 다정하고 느린 감속: easeOutCubic 로 크기가 줄어듭니다
@@ -258,13 +250,15 @@ render();
   function frame(t){
     const dt=Math.min(40,t-(last||t));last=t;
     ctx.clearRect(0,0,W,H);
+    if(performance.now()-lastMove>STOP_MS){for(const p of parts){if(!p.stopping){p.stopping=true;p.fadeFrom=p.life;p.ttl=Math.min(p.ttl,p.life+FADE_MS);}}}
     for(let i=parts.length-1;i>=0;i--){
       const p=parts[i];p.life+=dt;const k=p.life/p.ttl;
       if(k>=1){parts.splice(i,1);continue;}
       p.vx*=.985;p.vy=p.vy*.985+.012; // 아주 약한 중력 — 실에서 흘러내리는 느낌
       p.x+=p.vx*dt/16;p.y+=p.vy*dt/16;p.rot+=p.vr*dt/16;
-      const s=p.size*(1-Math.pow(k,1.6)*.9); // 처음엔 거의 그대로, 끝으로 갈수록 천천히 작아짐
-      ctx.globalAlpha=p.alpha*(1-easeOut(Math.max(0,(k-.35)/.65)));
+      const s=p.size*(1-Math.pow(Math.min(1,p.life/p.ttl0),1.6)*.9); // 처음엔 거의 그대로, 끝으로 갈수록 천천히 작아짐
+      const fade=p.stopping?easeOut((p.life-p.fadeFrom)/(p.ttl-p.fadeFrom||1)):easeOut(Math.max(0,(k-.35)/.65));
+      ctx.globalAlpha=p.alpha*(1-Math.min(1,fade));
       ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.drawImage(p.img,-s,-s,s*2,s*2);ctx.restore();
     }
     ctx.globalAlpha=1;
@@ -273,7 +267,7 @@ render();
   function kick(){if(!running){running=true;requestAnimationFrame(frame);}}
   function onMove(e){
     if(e.pointerType&&e.pointerType!=='mouse'&&e.pointerType!=='pen')return;
-    const x=e.clientX,y=e.clientY;
+    const x=e.clientX,y=e.clientY;lastMove=performance.now();
     if(px===null){px=x;py=y;return;}
     const dx=x-px,dy=y-py,dist=Math.hypot(dx,dy);
     carry+=dist/11; // 11px 움직일 때마다 비즈 1개
