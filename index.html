@@ -157,24 +157,16 @@
 @media(max-width:800px){.strengths{gap:10vh}.strength{top:calc(86px + var(--i) * 16px);grid-template-columns:1fr;gap:16px;min-height:250px;padding:32px 26px}.strength h3{font-size:36px}.strength p{font-size:15px}}
 @media (prefers-reduced-motion:reduce){.wave .wv{animation:none}.strength,.strength>.wave{transition:none}}
 
-/* ===== 4. Experience — 채워지는 타임라인 · 툴팁 ===== */
+/* ===== 4. Experience — 채워지는 타임라인 ===== */
 .timeline{position:relative;padding-left:44px}
 .tl-rail{position:absolute;left:12px;top:0;bottom:0;width:2px;background:#e2e8f0}
 .tl-fill{position:absolute;inset:0;background:var(--accent);transform-origin:top center;transform:scaleY(0)}
-.job{position:relative;outline-offset:6px;transition:background-color .6s cubic-bezier(.22,1,.36,1)}
+.job{position:relative;transition:background-color .6s cubic-bezier(.22,1,.36,1)}
 .job:hover{background:linear-gradient(90deg,rgba(42,91,215,.045),transparent 70%)}
 .tl-dot{position:absolute;left:-38px;top:36px;width:14px;height:14px;border-radius:50%;background:var(--paper);border:2px solid #cbd5e1;transition:background-color .6s cubic-bezier(.22,1,.36,1),border-color .6s cubic-bezier(.22,1,.36,1),box-shadow .6s cubic-bezier(.22,1,.36,1)}
 .job.is-on .tl-dot{background:var(--accent);border-color:var(--accent);box-shadow:0 0 0 6px rgba(42,91,215,.14)}
-.tl-tip{position:absolute;left:0;top:0;z-index:5;width:300px;padding:18px 20px;background:#fff;border:1px solid var(--line);box-shadow:0 22px 44px -22px rgba(15,23,42,.38);opacity:0;pointer-events:none;transition:opacity .5s cubic-bezier(.22,1,.36,1);will-change:transform}
-.tl-tip.show{opacity:1}
-.tl-tip img{display:block;width:100%;height:auto;margin:0 0 12px}
-.job .tl-tip p{max-width:none;margin:0}
-.tl-tip .tl-tip-head{font-size:15px;font-weight:800;color:var(--ink)}
-.tl-tip .tl-tip-period{font-size:12px;color:var(--muted);margin:2px 0 10px}
-.tl-tip ul{margin:0;padding-left:16px;font-size:13px;line-height:1.75;color:#334155}
 @media(max-width:800px){.timeline{padding-left:32px}.tl-rail{left:8px}.tl-dot{left:-30px;top:34px}}
-@media(hover:none),(pointer:coarse){.tl-tip{position:static;width:auto;opacity:1;margin-top:14px;padding:14px 16px;box-shadow:none;background:var(--soft);border:0;transform:none!important;grid-column:1/-1}}
-@media (prefers-reduced-motion:reduce){.tl-dot,.tl-tip,.job{transition:none}}
+@media (prefers-reduced-motion:reduce){.tl-dot,.job{transition:none}}
 </style>
 </head>
 <body>
@@ -450,29 +442,11 @@ render();
 })();
 </script>
 <script>
-/* ===== 4. Experience — 스크롤로 채워지는 타임라인 · 요약 툴팁 =====
-   ★ 툴팁 내용은 TIPS 에서 편집하세요 (회사명 = 카드 제목 그대로).
-     사진을 넣으려면 img:'media/파일명.jpg' 를 추가하면 툴팁 위쪽에 표시됩니다. */
+/* ===== 4. Experience — 스크롤로 채워지는 타임라인 ===== */
 (function(){
   const tl=document.querySelector('#experience .timeline');
   if(!tl)return;
   const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const canHover=window.matchMedia('(hover: hover) and (pointer: fine)').matches;
-  const TIPS={
-    '(주)꿈꾸는사람들':{period:'2020.10 — 2024.12 · 4년 3개월',items:[
-      '공공기관 대상 안내판·인쇄물·판촉물 디자인 사회적기업',
-      '블로그 월 방문자 60 → 2,000명',
-      '홈페이지 월 방문자 4,000명 (5.7배)',
-      'B2G 구매상담회 → 계약 4건 · 1억 원 기여',
-      '브런치 연재 · 회사 명의 전자책 4권']},
-    '(주)포천신문':{period:'2015.03 — 2020.05 · 5년 3개월',items:[
-      '재직 119호 + 퇴사 후 프리랜서 78호 = 누적 197호 편집',
-      '[우리동네 경로당] 304곳 중 256곳, 2년 연재',
-      '1면 톱기사 · 사설 기획·집필',
-      '사진 · 영상 촬영과 편집까지 직접']}
-  };
-  const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-
   /* --- 타임라인 선 --- */
   const rail=document.createElement('div');rail.className='tl-rail';rail.setAttribute('aria-hidden','true');
   rail.innerHTML='<span class="tl-fill"></span>';tl.prepend(rail);
@@ -486,25 +460,6 @@ render();
     jobs.forEach(j=>ScrollTrigger.create({trigger:j,start:'top 66%',onEnter:()=>j.classList.add('is-on'),onLeaveBack:()=>j.classList.remove('is-on')}));
   }else{fill.style.transform='scaleY(1)';jobs.forEach(j=>j.classList.add('is-on'));}
 
-  /* --- 요약 툴팁 --- */
-  jobs.forEach((j,n)=>{
-    const name=(j.querySelector('h3')||{}).textContent||'';const t=TIPS[name.trim()];if(!t)return;
-    const tip=document.createElement('div');tip.className='tl-tip';tip.id='tl-tip-'+n;tip.setAttribute('role','note');
-    tip.innerHTML=(t.img?`<img src="${esc(t.img)}" alt="" loading="lazy">`:'')+
-      `<p class="tl-tip-head">${esc(name)}</p><p class="tl-tip-period">${esc(t.period)}</p><ul>${t.items.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`;
-    j.appendChild(tip);j.tabIndex=0;j.setAttribute('aria-describedby',tip.id);
-    if(!canHover)return; // 터치 기기에서는 CSS로 카드 아래에 펼쳐서 보여줍니다
-    // 마우스를 부드럽게 따라오는 툴팁
-    let mx=0,my=0,x=0,y=0,raf=0,inside=false;
-    const loop=()=>{x+=(mx-x)*.14;y+=(my-y)*.14;tip.style.transform=`translate(${x}px,${y}px)`;if(inside||Math.abs(mx-x)>.5)raf=requestAnimationFrame(loop);else raf=0;};
-    const place=e=>{const r=j.getBoundingClientRect();const w=tip.offsetWidth,h=tip.offsetHeight;
-      mx=Math.min(e.clientX-r.left+22,r.width-w-8);my=Math.max(-h*0.35,Math.min(e.clientY-r.top+18,r.height-h*0.4));};
-    j.addEventListener('mouseenter',e=>{inside=true;place(e);x=mx;y=my+10;tip.classList.add('show');if(!raf)raf=requestAnimationFrame(loop);});
-    j.addEventListener('mousemove',e=>{place(e);if(!raf)raf=requestAnimationFrame(loop);});
-    j.addEventListener('mouseleave',()=>{inside=false;tip.classList.remove('show');});
-    j.addEventListener('focus',()=>{const r=j.getBoundingClientRect();mx=x=Math.max(0,r.width-tip.offsetWidth-8);my=y=16;tip.style.transform=`translate(${x}px,${y}px)`;tip.classList.add('show');});
-    j.addEventListener('blur',()=>tip.classList.remove('show'));
-  });
 })();
 </script>
 </body></html>
