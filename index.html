@@ -126,6 +126,14 @@
 
 /* ===== 1. 마우스 파티클 트레일 (비즈) ===== */
 #beadTrail{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:25}
+
+/* ===== 2. Hero 타이핑 효과 ===== */
+.tw-ch{opacity:0;transition:opacity .22s ease}
+.tw-ch.on{opacity:1}
+.tw-caret{display:inline-block;width:2px;height:1.05em;margin-left:2px;vertical-align:-.16em;background:var(--accent);animation:twBlink 1s steps(1) infinite}
+.tw-caret.done{animation:twBlink 1s steps(1) 2,twOut .6s ease 2s forwards}
+@keyframes twBlink{50%{opacity:0}}
+@keyframes twOut{to{opacity:0;width:0;margin:0}}
 </style>
 </head>
 <body>
@@ -286,6 +294,71 @@ render();
   enable();
   (reduce.addEventListener?reduce.addEventListener('change',enable):reduce.addListener(enable));
   document.addEventListener('visibilitychange',()=>{if(document.hidden){parts.length=0;px=null;}});
+})();
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script>
+/* ===== 2. Hero — 넘버 카운팅 · 타이핑 효과 (GSAP + ScrollTrigger) =====
+   ★ 숫자 시작값 · 표시 형식은 COUNTERS 에서 편집하세요.
+   JS나 GSAP을 불러오지 못하면 원래 문구가 그대로 보입니다. */
+(function(){
+  if(!window.gsap)return;
+  const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(window.ScrollTrigger)gsap.registerPlugin(ScrollTrigger);
+  const EASE='power3.out'; // 끝에서 천천히 내려앉는 다정한 감속
+  const fmt=(n,d)=>n.toLocaleString('ko-KR',{minimumFractionDigits:d,maximumFractionDigits:d});
+
+  /* --- 넘버 카운터 --- */
+  // match: 요소의 원래 글자, from/to: 숫자, render: 화면에 보일 글자
+  const COUNTERS=[
+    {sel:'.hero h1 em', match:'2,000명', from:60, to:2000, render:v=>fmt(Math.round(v),0)+'명', dur:1.8, onLoad:true},
+    {sel:'.metric strong', match:'5.7배', from:0, to:5.7, render:v=>fmt(v,1)+'배'},
+    {sel:'.metric strong', match:'33배',  from:0, to:33,  render:v=>Math.round(v)+'배'},
+    {sel:'.metric strong', match:'1억 원', from:0, to:10000, render:v=>v>=10000?'1억 원':fmt(Math.round(v/10)*10,0)+'만 원', dur:1.6},
+    {sel:'.metric strong', match:'3배',   from:0, to:3,   render:v=>fmt(v,1).replace(/\.0$/,'')+'배'}
+  ];
+  COUNTERS.forEach(c=>{
+    const el=[...document.querySelectorAll(c.sel)].find(e=>e.textContent.trim()===c.match);
+    if(!el||reduce)return;
+    // 폭을 미리 고정해 숫자가 바뀌어도 주변 글자가 흔들리지 않게
+    el.style.display='inline-block';el.style.fontVariantNumeric='tabular-nums';
+    el.style.minWidth=el.getBoundingClientRect().width+'px';
+    if(el.closest('h1'))el.style.textAlign='right';
+    el.setAttribute('aria-label',c.match);
+    const o={v:c.from};el.textContent=c.render(c.from);
+    const tween={v:c.to,duration:c.dur||1.4,ease:EASE,onUpdate:()=>{el.textContent=c.render(o.v);},onComplete:()=>{el.textContent=c.match;}};
+    if(!c.onLoad&&window.ScrollTrigger){tween.scrollTrigger={trigger:el,start:'top 88%',once:true};}
+    else tween.delay=.35;
+    gsap.to(o,tween);
+  });
+
+  /* --- 서브 카피 타이핑 (한 글자씩 필사하듯) --- */
+  const lead=document.querySelector('.hero .lead');
+  if(lead&&!reduce){
+    const full=lead.textContent;
+    lead.setAttribute('aria-label',full);
+    const chars=[];
+    (function split(node){
+      [...node.childNodes].forEach(n=>{
+        if(n.nodeType===3){
+          const frag=document.createDocumentFragment();
+          [...n.textContent].forEach(ch=>{const s=document.createElement('span');s.className='tw-ch';s.textContent=ch;s.setAttribute('aria-hidden','true');frag.appendChild(s);chars.push(s);});
+          n.replaceWith(frag);
+        }else if(n.nodeType===1)split(n);
+      });
+    })(lead);
+    const caret=document.createElement('span');caret.className='tw-caret';caret.setAttribute('aria-hidden','true');
+    const tl=gsap.timeline({delay:.6});
+    let t=0;
+    chars.forEach((ch,i)=>{
+      const c=ch.textContent;
+      tl.call(()=>{ch.classList.add('on');ch.after(caret);},null,t);
+      // 사람이 쓰는 듯한 리듬: 기본 45~75ms, 띄어쓰기 · 쉼표 뒤엔 잠깐 쉼
+      t+= c===','?0.32 : c===' '?0.09 : 0.045+Math.random()*0.03;
+    });
+    tl.call(()=>{caret.classList.add('done');},null,t+0.2);
+  }
 })();
 </script>
 </body></html>
