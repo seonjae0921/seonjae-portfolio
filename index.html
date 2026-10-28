@@ -168,20 +168,18 @@
 @media(max-width:800px){.timeline{padding-left:32px}.tl-rail{left:8px}.tl-dot{left:-30px;top:34px}}
 @media (prefers-reduced-motion:reduce){.tl-dot,.job{transition:none}}
 
-/* ===== 5. Projects — 무한 가로 캐러셀 · 켄 번스 ===== */
-.proj-viewport{position:relative;overflow:hidden;padding:6px 0 26px;-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 5%,#000 95%,transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 5%,#000 95%,transparent 100%)}
-.projects.proj-track{display:flex;gap:28px;width:max-content;grid-template-columns:none;will-change:transform}
-.proj-track .project{flex:0 0 400px;width:400px}
-.proj-swipe .proj-viewport{overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;-webkit-mask-image:none;mask-image:none}
-.proj-swipe .proj-viewport::-webkit-scrollbar{display:none}
-.proj-swipe .proj-track{width:auto}
-.proj-swipe .proj-track .project{scroll-snap-align:start}
+/* ===== 5. Projects — 켄 번스 · (모바일) 가로 스와이프 ===== */
 .project-art>*:not(.kb){position:relative;z-index:1}
 .kb{position:absolute;inset:0;z-index:0;transform:scale(1.001);transform-origin:62% 38%;transition:transform 1.6s cubic-bezier(.22,1,.36,1)}
 .kb-pattern{background:radial-gradient(circle at 78% 22%,rgba(42,91,215,.20),transparent 42%),radial-gradient(circle at 16% 86%,rgba(56,189,248,.18),transparent 46%),radial-gradient(rgba(42,91,215,.15) 1px,transparent 1.3px) 0 0/18px 18px}
 .media-art img.kb{width:100%;height:100%;object-fit:cover}
 .project:hover .kb,.project:focus-within .kb{transform:scale(1.14) translate3d(-2%,-1.5%,0);transition:transform 7s cubic-bezier(.22,1,.36,1)}
-@media(max-width:800px){.proj-track .project{flex-basis:82vw;width:82vw}.projects.proj-track{gap:14px}}
+@media(max-width:800px){
+  .proj-viewport{overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:4px 0 20px}
+  .proj-viewport::-webkit-scrollbar{display:none}
+  .projects.proj-track{display:flex;gap:14px;grid-template-columns:none}
+  .proj-track .project{flex:0 0 82vw;width:82vw;scroll-snap-align:start}
+}
 @media (prefers-reduced-motion:reduce){.kb,.project:hover .kb{transition:none;transform:none}}
 </style>
 </head>
@@ -479,73 +477,20 @@ render();
 })();
 </script>
 <script>
-/* ===== 5. Projects — 무한 가로 캐러셀 · 켄 번스 =====
-   카드가 한 줄로 천천히 흐르며 끝없이 이어집니다(GSAP). 페이지 스크롤 속도와 방향에 따라
-   잠시 빨라지거나 거꾸로 흐르고(ScrollTrigger), 마우스를 올리면 부드럽게 멈춥니다.
-   카드 그림 영역은 마우스를 올리면 천천히 확대됩니다(켄 번스).
-   터치 기기 · 움직임 줄이기 설정에서는 손으로 넘기는 가로 스크롤로 바뀝니다. */
+/* ===== 5. Projects — 켄 번스 · (모바일) 가로 스와이프 =====
+   PC: 원래대로 2열 × 2줄. 카드에 마우스를 올리면 그림 영역이 천천히 확대됩니다(켄 번스).
+   휴대폰(800px 이하): 손가락으로 옆으로 넘기는 카드 줄. */
 (function(){
   const grid=document.getElementById('projectGrid');
   if(!grid)return;
-  const section=document.getElementById('projects');
-  const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const fine=window.matchMedia('(hover: hover) and (pointer: fine)').matches;
-
-  // 켄 번스용 배경 레이어 (사진이 있으면 사진 자체가 확대됨)
-  function addKenBurns(root){
-    root.querySelectorAll('.project-art').forEach(a=>{
-      if(a.querySelector('.kb'))return;
-      if(a.classList.contains('media-art')){const img=a.querySelector('img');if(img)img.classList.add('kb');return;}
-      const kb=document.createElement('span');kb.className='kb kb-pattern';kb.setAttribute('aria-hidden','true');a.prepend(kb);
-    });
-  }
-
   const vp=document.createElement('div');vp.className='proj-viewport';
   grid.parentNode.insertBefore(vp,grid);vp.appendChild(grid);
   grid.classList.add('proj-track');
-  addKenBurns(grid);
-
-  const canMarquee=window.gsap&&fine&&!reduce;
-  if(!canMarquee){section.classList.add('proj-swipe');return;}
-
-  // 끊김 없는 반복을 위해 카드 한 벌을 복제(보조기기 · 키보드에서는 숨김)
-  const originals=[...grid.children];
-  originals.forEach(c=>{const k=c.cloneNode(true);k.setAttribute('aria-hidden','true');k.querySelectorAll('a,button').forEach(b=>b.tabIndex=-1);grid.appendChild(k);});
-  section.classList.add('proj-marquee');
-
-  let loop=null,setW=0;
-  const SPEED=38; // px/초 — 느긋하게
-  function build(){
-    if(loop)loop.kill();
-    const gap=parseFloat(getComputedStyle(grid).columnGap)||0;
-    setW=originals.reduce((s,c)=>s+c.getBoundingClientRect().width,0)+gap*originals.length;
-    gsap.set(grid,{x:0});
-    loop=gsap.to(grid,{x:-setW,duration:setW/SPEED,ease:'none',repeat:-1,
-      modifiers:{x:gsap.utils.unitize(x=>gsap.utils.wrap(-setW,0,parseFloat(x)))}});
-  }
-  build();
-  let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(build,200);});
-
-  // 스크롤 속도 · 방향에 반응 (ScrollTrigger)
-  let dir=1,hovering=false;
-  const settle=()=>gsap.to(loop,{timeScale:hovering?0:dir,duration:1.2,ease:'power2.out',overwrite:true});
-  if(window.ScrollTrigger){
-    gsap.registerPlugin(ScrollTrigger);
-    ScrollTrigger.create({trigger:section,start:'top bottom',end:'bottom top',
-      onToggle:self=>{self.isActive?loop.play():loop.pause();},
-      onUpdate:self=>{
-        if(hovering)return;
-        dir=self.direction;
-        const boost=Math.min(Math.abs(self.getVelocity())/350,5);
-        gsap.to(loop,{timeScale:dir*(1+boost),duration:.35,ease:'power1.out',overwrite:true,onComplete:settle});
-      }});
-  }
-  // 마우스를 올리면 천천히 멈추고, 떼면 다시 흐름
-  vp.addEventListener('mouseenter',()=>{hovering=true;gsap.to(loop,{timeScale:0,duration:.9,ease:'power2.out',overwrite:true});});
-  vp.addEventListener('mouseleave',()=>{hovering=false;settle();});
-  // 키보드로 카드에 들어오면 멈춤
-  vp.addEventListener('focusin',()=>{hovering=true;gsap.to(loop,{timeScale:0,duration:.4,overwrite:true});});
-  vp.addEventListener('focusout',()=>{hovering=false;settle();});
+  // 켄 번스용 배경 레이어 (사진이 있으면 사진 자체가 확대됨)
+  grid.querySelectorAll('.project-art').forEach(a=>{
+    if(a.classList.contains('media-art')){const img=a.querySelector('img');if(img)img.classList.add('kb');return;}
+    const kb=document.createElement('span');kb.className='kb kb-pattern';kb.setAttribute('aria-hidden','true');a.prepend(kb);
+  });
 })();
 </script>
 </body></html>
