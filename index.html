@@ -312,10 +312,10 @@ render();
   /* --- 넘버 카운터 --- */
   // match: 요소의 원래 글자, from/to: 숫자, render: 화면에 보일 글자
   const COUNTERS=[
-    {sel:'.hero h1 em', match:'2,000명', from:60, to:2000, render:v=>fmt(Math.round(v),0)+'명', dur:1.8, onLoad:true},
+    {sel:'.hero h1 em', match:'2,000명', from:60, to:2000, render:v=>fmt(Math.round(v),0)+'명', dur:2.5, onLoad:true},
     {sel:'.metric strong', match:'5.7배', from:0, to:5.7, render:v=>fmt(v,1)+'배'},
     {sel:'.metric strong', match:'33배',  from:0, to:33,  render:v=>Math.round(v)+'배'},
-    {sel:'.metric strong', match:'1억 원', from:0, to:10000, render:v=>v>=10000?'1억 원':fmt(Math.round(v/10)*10,0)+'만 원', dur:1.6},
+    {sel:'.metric strong', match:'1억 원', from:0, to:10000, render:v=>v>=10000?'1억 원':fmt(Math.round(v/10)*10,0)+'만 원', dur:2},
     {sel:'.metric strong', match:'3배',   from:0, to:3,   render:v=>fmt(v,1).replace(/\.0$/,'')+'배'}
   ];
   COUNTERS.forEach(c=>{
@@ -327,7 +327,7 @@ render();
     if(el.closest('h1'))el.style.textAlign='right';
     el.setAttribute('aria-label',c.match);
     const o={v:c.from};el.textContent=c.render(c.from);
-    const tween={v:c.to,duration:c.dur||1.4,ease:EASE,onUpdate:()=>{el.textContent=c.render(o.v);},onComplete:()=>{el.textContent=c.match;}};
+    const tween={v:c.to,duration:c.dur||2,ease:EASE,onUpdate:()=>{el.textContent=c.render(o.v);},onComplete:()=>{el.textContent=c.match;}};
     if(!c.onLoad&&window.ScrollTrigger){tween.scrollTrigger={trigger:el,start:'top 88%',once:true};}
     else tween.delay=.35;
     gsap.to(o,tween);
