@@ -165,6 +165,8 @@
 /* ===== 연락처 — 메일 주소 복사 ===== */
 .filter .count{font-weight:600;opacity:.55;margin-left:3px}.project-footer small{font-size:11px;color:var(--muted);line-height:1.5}.modal-links{display:flex;flex-wrap:wrap;gap:10px}.modal-links .btn{padding:11px 16px;font-size:12px;gap:10px}.modal .chips{margin-top:4px}.job time small{font-size:11px;color:var(--accent)}
 .modal .split{margin:0;padding-left:18px;font-size:14px;color:#4b5563;line-height:1.75}.modal .split li+li{margin-top:6px}.modal .split b{color:var(--ink)}
+.detail-media figure{margin:0}.detail-media figcaption{font-size:12px;color:var(--muted);margin-top:6px}.detail-media .media-note{font-size:12px;font-weight:700;color:var(--accent);margin:18px 0 -4px;white-space:normal}.detail-media img{border:1px solid var(--line)}
+.media-art{padding:28px;color:#fff}.media-art img.kb{position:absolute;inset:0;z-index:0}.media-art .art-shade{position:absolute;inset:0;z-index:0;background:linear-gradient(180deg,rgba(15,23,42,.62) 0%,rgba(15,23,42,.72) 50%,rgba(15,23,42,.9) 100%)}.media-art img.kb{filter:blur(1.5px) saturate(.9)}.media-art .art-kpi span{color:rgba(255,255,255,.88)}
 #copyEmail.copied{background:var(--accent);border-color:var(--accent)}
 .contact .copy-status{min-height:1.6em;margin:14px 0 0;font-size:14px;color:var(--accent);font-weight:600}
 </style>
@@ -207,7 +209,11 @@ const projects=[
  outcomes:["한수원·한국원자력산업협회 사회적기업 구매상담회 <strong>참가기업 선정</strong> (매칭 기반 30~50개사)","영업팀 상담으로 다이어리·수첩·인쇄물·대형안내판 <strong>계약 4건, 약 1억 원</strong> (한수원 2 · 협력업체 2)","신청서에 올린 품목 카테고리가 실제 계약 품목으로 연결"],
  background:"B2C·온라인 채널 중심이라 신규 고객 확대에 한계가 있었고, 공공기관이라는 새 판로가 필요했습니다.",
  strategy:"B2G 판로 확장을 제안하고, 구매상담회 공고를 분석해 수요기관과의 매칭으로 참가기업을 뽑는 구조임을 파악했습니다. 이에 맞춰 발전소 나무안내간판을 1순위로 둔 발전소 맞춤 10개 품목 라인업을 구성했습니다.",
- execution:"품목별 단가·사양·생산규모·인증·입점처를 정리하고 참가신청서, 인증·증빙 7종, 회사·제품 소개서를 준비했습니다. 선정 후 상담회에 참가한 영업팀을 지원했으며, 계약은 영업팀장이 수주했습니다."},
+ execution:"품목별 단가·사양·생산규모·인증·입점처를 정리하고 참가신청서, 인증·증빙 7종, 회사·제품 소개서를 준비했습니다. 선정 후 상담회에 참가한 영업팀을 지원했으며, 계약은 영업팀장이 수주했습니다.",
+ image:"media/olttae-catalog-cover.jpg",
+ gallery:[{src:"media/olttae-catalog-business.jpg",caption:"사업분야 — 공공기관 대상 7개 사업 라인업"},{src:"media/olttae-catalog-print.jpg",caption:"홍보 디자인 및 인쇄물 — 계약 품목(다이어리·수첩·인쇄물)과 연결"},{src:"media/olttae-catalog-signboard.jpg",caption:"나무안내판 — 계약 품목(대형안내판)과 연결"}],
+ mediaNote:"올때닷컴 홍보 카탈로그 (직접 기획, 디자인팀 협업 제작)",
+ links:[{label:"홍보 카탈로그 전체 보기 (PDF)",url:"media/olttae-catalog.pdf"}]},
 
 {id:3,category:"work",featured:true,
  label:"CONTENT SYSTEM · B2G",kpi:"285편",kpiLabel:"새 공식 블로그 17개월 단독 운영",
@@ -319,14 +325,14 @@ const grid=document.getElementById('projectGrid');const modal=document.getElemen
 function escapeHTML(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function safeMediaPath(v){const s=String(v||'');return /^(?:media\/)[a-zA-Z0-9_./-]+$/.test(s)&&!s.includes('..')?s:'';}
 function safeEmbedUrl(v){try{const u=new URL(v);return u.protocol==='https:'&&['www.youtube.com','www.youtube-nocookie.com'].includes(u.hostname)&&u.pathname.startsWith('/embed/')?u.href:''}catch{return ''}}
-function safeLink(v){try{const u=new URL(v);return u.protocol==='https:'?u.href:''}catch{return ''}}
+function safeLink(v){if(safeMediaPath(v))return v;try{const u=new URL(v);return u.protocol==='https:'?u.href:''}catch{return ''}}
 function cardArt(p,n){
   const img=safeMediaPath(p.image);
   return img
-    ? `<div class="project-art media-art"><img class="kb" src="${escapeHTML(img)}" alt="${escapeHTML(p.title)} 프로젝트 이미지" loading="lazy"></div>`
+    ? `<div class="project-art media-art"><img class="kb" src="${escapeHTML(img)}" alt="${escapeHTML(p.title)} 프로젝트 이미지" loading="lazy"><span class="art-shade" aria-hidden="true"></span><span class="art-top">PORTFOLIO / ${String(n).padStart(2,'0')}</span><div class="art-kpi"><strong>${escapeHTML(p.kpi)}</strong><span>${escapeHTML(p.kpiLabel)}</span></div></div>`
     : `<div class="project-art"><span class="kb kb-pattern" aria-hidden="true"></span><span class="art-top">PORTFOLIO / ${String(n).padStart(2,'0')}</span><div class="art-kpi"><strong>${escapeHTML(p.kpi)}</strong><span>${escapeHTML(p.kpiLabel)}</span></div></div>`;
 }
-function detailMedia(p){const img=safeMediaPath(p.image),vid=safeMediaPath(p.video),embeds=[p.videoUrl,...(p.videoUrls||[])].map(safeEmbedUrl).filter(Boolean);return `<div class="detail-media">${img?`<img src="${escapeHTML(img)}" alt="${escapeHTML(p.title)} 결과물" loading="lazy">`:''}${vid?`<video controls playsinline preload="metadata" src="${escapeHTML(vid)}">이 브라우저에서는 영상을 재생할 수 없습니다.</video>`:''}${embeds.map((e,i)=>`<iframe src="${escapeHTML(e)}" title="${escapeHTML(p.title)} 프로젝트 영상 ${i+1}" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`).join('')}</div>`;}
+function detailMedia(p){const img=safeMediaPath(p.image),vid=safeMediaPath(p.video),embeds=[p.videoUrl,...(p.videoUrls||[])].map(safeEmbedUrl).filter(Boolean);const gal=(p.gallery||[]).map(g=>({src:safeMediaPath(g.src),cap:g.caption||''})).filter(g=>g.src);return `<div class="detail-media">${p.mediaNote?`<p class="media-note">${escapeHTML(p.mediaNote)}</p>`:''}${gal.map(g=>`<figure><img src="${escapeHTML(g.src)}" alt="${escapeHTML(g.cap||p.title)}" loading="lazy">${g.cap?`<figcaption>${escapeHTML(g.cap)}</figcaption>`:''}</figure>`).join('')}${img&&!gal.length?`<img src="${escapeHTML(img)}" alt="${escapeHTML(p.title)} 결과물" loading="lazy">`:''}${vid?`<video controls playsinline preload="metadata" src="${escapeHTML(vid)}">이 브라우저에서는 영상을 재생할 수 없습니다.</video>`:''}${embeds.map((e,i)=>`<iframe src="${escapeHTML(e)}" title="${escapeHTML(p.title)} 프로젝트 영상 ${i+1}" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`).join('')}</div>`;}
 function detailLinks(p){const ls=(p.links||[]).map(l=>({label:l.label,url:safeLink(l.url)})).filter(l=>l.url);return ls.length?`<h3>관련 자료</h3><div class="modal-links">${ls.map(l=>`<a class="btn" href="${escapeHTML(l.url)}" target="_blank" rel="noopener noreferrer">${escapeHTML(l.label)} <span aria-hidden="true">↗</span></a>`).join('')}</div>`:'';}
 const filterBox=document.getElementById('projectFilters');
 if(filterBox){filterBox.innerHTML=FILTERS.map(([k,v],i)=>`<button class="filter${i===0?' active':''}" type="button" data-filter="${k}" aria-pressed="${i===0}">${v} <span class="count">${k==='featured'?projects.filter(p=>p.featured).length:k==='all'?projects.length:projects.filter(p=>p.category===k).length}</span></button>`).join('');}
