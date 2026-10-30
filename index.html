@@ -182,7 +182,7 @@
 <script>
 // ★ 기준 데이터: 노션 커리어 허브 (프로젝트·성과 DB) — 2026-10-30 동기화
 // ★ 프로젝트 이미지: image:"media/파일명.jpg" (media 폴더에 파일 추가)
-// ★ 영상: video:"media/파일명.mp4" 또는 videoUrl:"https://www.youtube-nocookie.com/embed/영상ID"
+// ★ 영상: video:"media/파일명.mp4" 또는 videoUrl:"https://www.youtube-nocookie.com/embed/영상ID" (여러 개는 videoUrls:[...])
 // ★ 관련 링크: links:[{label:"버튼 이름",url:"https://..."}]
 // ★ category: work(재직) · freelance(외주·클라이언트) · personal(개인) / featured:true 는 '대표' 탭에 노출
 const projects=[
@@ -276,7 +276,8 @@ const projects=[
  background:"클라이언트마다 과제가 달랐습니다. 100여 개 대기업에 납품하는 OEM 제조사가 새로 내는 B2C 욕실 브랜드는 단기간에 인지도를 얻어야 했고, 힐링 카페가 많은 시장의 팜앤카페는 '청년 농부의 정직함'을 알려야 했습니다.",
  strategy:"바스타임은 한샘·LX하우시스·현대리바트 등 납품 실적을 소셜 프루프로 앞세우고, 욕실 가구를 '위생 부속품'에서 '공간의 프리미엄 주인공'으로 다시 정의했습니다. 이리온은 봄 모종·여름 수확·가을 김장·겨울 만두로 이어지는 사계절 옴니버스로 구성했습니다.",
  execution:"북트레일러는 《64》를 빠른 컷과 강한 효과음의 30초 미스터리로, 《나미야 잡화점의 기적》을 2인칭 '당신' 카피의 1분 감성 영상으로 압축했습니다.",
- links:[{label:"바스타임 론칭 영상",url:"https://www.instagram.com/reel/DerqX0Uh4Zl/"},{label:"이리온 사계절 영상",url:"https://www.instagram.com/reel/Derr4EMBndr/"},{label:"북트레일러",url:"https://www.instagram.com/reel/Dc0w0G-yfiC/"}]},
+ videoUrls:["https://www.youtube-nocookie.com/embed/NBkjQaybJQc","https://www.youtube-nocookie.com/embed/2GGozugucwo"],
+ links:[{label:"휴인 바스타임 론칭 영상",url:"https://youtu.be/NBkjQaybJQc"},{label:"이리온 팜앤카페 영상",url:"https://youtu.be/2GGozugucwo"},{label:"북트레일러 《나미야 잡화점의 기적》",url:"https://youtube.com/shorts/zrnIxxKda4Q"},{label:"북트레일러 《64》",url:"https://youtube.com/shorts/me7-Wa1B17M"}]},
 
 {id:9,category:"freelance",featured:false,
  label:"BUSINESS PLAN · STARTUP",kpi:"모두의 창업",kpiLabel:"창업 지원서 재설계 (1차 → 2차)",
@@ -324,7 +325,7 @@ function cardArt(p,n){
     ? `<div class="project-art media-art"><img class="kb" src="${escapeHTML(img)}" alt="${escapeHTML(p.title)} 프로젝트 이미지" loading="lazy"></div>`
     : `<div class="project-art"><span class="kb kb-pattern" aria-hidden="true"></span><span class="art-top">PORTFOLIO / ${String(n).padStart(2,'0')}</span><div class="art-kpi"><strong>${escapeHTML(p.kpi)}</strong><span>${escapeHTML(p.kpiLabel)}</span></div></div>`;
 }
-function detailMedia(p){const img=safeMediaPath(p.image),vid=safeMediaPath(p.video),embed=safeEmbedUrl(p.videoUrl);return `<div class="detail-media">${img?`<img src="${escapeHTML(img)}" alt="${escapeHTML(p.title)} 결과물" loading="lazy">`:''}${vid?`<video controls playsinline preload="metadata" src="${escapeHTML(vid)}">이 브라우저에서는 영상을 재생할 수 없습니다.</video>`:''}${embed?`<iframe src="${escapeHTML(embed)}" title="${escapeHTML(p.title)} 프로젝트 영상" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`:''}</div>`;}
+function detailMedia(p){const img=safeMediaPath(p.image),vid=safeMediaPath(p.video),embeds=[p.videoUrl,...(p.videoUrls||[])].map(safeEmbedUrl).filter(Boolean);return `<div class="detail-media">${img?`<img src="${escapeHTML(img)}" alt="${escapeHTML(p.title)} 결과물" loading="lazy">`:''}${vid?`<video controls playsinline preload="metadata" src="${escapeHTML(vid)}">이 브라우저에서는 영상을 재생할 수 없습니다.</video>`:''}${embeds.map((e,i)=>`<iframe src="${escapeHTML(e)}" title="${escapeHTML(p.title)} 프로젝트 영상 ${i+1}" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`).join('')}</div>`;}
 function detailLinks(p){const ls=(p.links||[]).map(l=>({label:l.label,url:safeLink(l.url)})).filter(l=>l.url);return ls.length?`<h3>관련 자료</h3><div class="modal-links">${ls.map(l=>`<a class="btn" href="${escapeHTML(l.url)}" target="_blank" rel="noopener noreferrer">${escapeHTML(l.label)} <span aria-hidden="true">↗</span></a>`).join('')}</div>`:'';}
 const filterBox=document.getElementById('projectFilters');
 if(filterBox){filterBox.innerHTML=FILTERS.map(([k,v],i)=>`<button class="filter${i===0?' active':''}" type="button" data-filter="${k}" aria-pressed="${i===0}">${v} <span class="count">${k==='featured'?projects.filter(p=>p.featured).length:k==='all'?projects.length:projects.filter(p=>p.category===k).length}</span></button>`).join('');}
