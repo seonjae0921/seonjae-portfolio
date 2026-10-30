@@ -362,7 +362,7 @@ render();
 </script>
 <script>
 /* ===== 1. 마우스 파티클 트레일 — 비즈 공예 =====
-   진주 · 캣츠아이 · 붉은 아크릴 하트 · 시드비즈가 마우스를 따라 흩뿌려진 뒤
+   진주 · 유리 비즈 · 붉은 아크릴 하트 · 시드비즈가 마우스를 따라 흩뿌려진 뒤
    천천히 작아지며 사라집니다. 클릭은 그대로 아래 콘텐츠에 전달됩니다(pointer-events:none).
    ★ 비즈 종류 · 색 · 비율은 BEADS 배열에서 편집하세요. */
 (function(){
@@ -377,7 +377,7 @@ render();
   // [종류, 색 목록, 등장 비율, 기본 크기(px)]
   const BEADS=[
     {type:'pearl',     colors:['#fbf7ef','#f6ecdf','#f3e3ea'],            weight:5, size:[8,13]},
-    {type:'cateye',    colors:['#6fb7c9','#c98bb9','#8fa7e6','#e6b36f'],   weight:3, size:[8,12]},
+    {type:'glass',     colors:['#6fb7c9','#c98bb9','#8fa7e6','#e6b36f'],   weight:3, size:[8,12]},
     {type:'heart',     colors:['#d7263d','#e8414f'],                       weight:2, size:[10,15]},
     {type:'seed',      colors:['#f2c14e','#7fb8a4','#e58f9e','#9aa8d8'],   weight:3, size:[4,6]}
   ];
@@ -395,14 +395,13 @@ render();
       g.fillStyle=gr;g.beginPath();g.arc(0,0,26,0,Math.PI*2);g.fill();
       g.fillStyle='rgba(255,255,255,.85)';g.beginPath();g.ellipse(-9,-10,7,4,-.6,0,Math.PI*2);g.fill();
       g.strokeStyle='rgba(120,100,80,.18)';g.lineWidth=1.5;g.beginPath();g.arc(0,0,25.5,0,Math.PI*2);g.stroke();
-    }else if(type==='cateye'){
-      const gr=g.createRadialGradient(-6,-6,3,0,0,26);
-      gr.addColorStop(0,shade(color,.45));gr.addColorStop(.7,color);gr.addColorStop(1,shade(color,-.35));
-      g.fillStyle=gr;g.beginPath();g.arc(0,0,26,0,Math.PI*2);g.fill();
-      // 캣츠아이 특유의 빛 띠
-      const band=g.createLinearGradient(-26,0,26,0);
-      band.addColorStop(0,'rgba(255,255,255,0)');band.addColorStop(.5,'rgba(255,255,255,.75)');band.addColorStop(1,'rgba(255,255,255,0)');
-      g.save();g.rotate(-.5);g.fillStyle=band;g.beginPath();g.ellipse(0,0,24,4.5,0,0,Math.PI*2);g.fill();g.restore();
+    }else if(type==='glass'){
+      // 맑은 유리 비즈: 투명한 몸통 + 왼쪽 위 반사광
+      const gr=g.createRadialGradient(-8,-8,2,0,0,26);
+      gr.addColorStop(0,shade(color,.6));gr.addColorStop(.55,color);gr.addColorStop(1,shade(color,-.25));
+      g.globalAlpha=.82;g.fillStyle=gr;g.beginPath();g.arc(0,0,26,0,Math.PI*2);g.fill();g.globalAlpha=1;
+      g.fillStyle='rgba(255,255,255,.9)';g.beginPath();g.arc(-9,-10,5,0,Math.PI*2);g.fill();
+      g.fillStyle='rgba(255,255,255,.35)';g.beginPath();g.arc(8,9,3,0,Math.PI*2);g.fill();
     }else if(type==='heart'){
       const gr=g.createRadialGradient(-8,-10,2,0,0,30);
       gr.addColorStop(0,shade(color,.4));gr.addColorStop(.6,color);gr.addColorStop(1,shade(color,-.3));
